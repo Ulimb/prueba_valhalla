@@ -1,0 +1,22 @@
+# nginx.conf.template
+events {}
+
+http {
+  upstream valhalla_up {
+    server valhalla:8002;
+  }
+
+  server {
+    listen 80;
+
+    location / {
+      if ($http_x_api_key != "${VALHALLA_API_KEY}") {
+        add_header Content-Type application/json;
+        return 401 '{"error":"Unauthorized - Invalid API Key"}';
+      }
+      proxy_pass http://valhalla_up;
+      proxy_set_header Host $host;
+      proxy_set_header X-Real-IP $remote_addr;
+    }
+  }
+}
